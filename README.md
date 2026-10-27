@@ -1,24 +1,52 @@
-# Macropad ESP32-S2 Mini — 12 tombol + OLED
+# Macropad ESP32 — 12 tombol + OLED
 
 Macropad meja kerja dengan **12 tombol mekanikal** dan **OLED 0.96"** yang jadi panel status
 sekaligus "companion" kecil: menampilkan layer aktif, tombol terakhir, peta 12 tombol yang
 menyala saat ditekan, dan wajah yang berkedip / senang saat kamu mengetik / tidur saat kamu
 tinggalkan.
 
-Semua jalan lewat USB HID bawaan ESP32-S2 — **tanpa driver, tanpa software tambahan** di
-komputer, dan **tanpa library tambahan** di board (cukup CircuitPython + KMK).
+Jalan di **ESP32-S2 Mini, LOLIN S3 Mini, dan ESP32-S3 Super Mini** — pilih board lewat satu
+baris di `firmware/kb.py`. Semua lewat USB HID bawaan ESP32 — **tanpa driver, tanpa software
+tambahan** di komputer, dan **tanpa library tambahan** di board (cukup CircuitPython + KMK).
 
 ![Tampak atas](hardware/layout.png)
 
 | | |
 |---|---|
-| **Board** | LOLIN / WEMOS ESP32-S2 Mini (ESP32-S2FN4R2, 4 MB flash) |
+| **Board** | ESP32-S2 Mini · LOLIN S3 Mini · ESP32-S3 Super Mini |
 | **Tombol** | 12 × switch — **MX** atau **tactile 6×6**, pilih salah satu |
-| **Layar** | OLED 0.96" SSD1306 128×64, I2C (`IO33`/`IO35`) |
+| **Layar** | OLED 0.96" SSD1306 128×64, I2C |
 | **Layer** | 2 (media + navigasi) |
 | **Firmware** | CircuitPython + [KMK](https://github.com/KMKfw/kmk_firmware) + driver OLED sendiri |
 | **Ukuran case** | MX: 91 × 98 × 19 mm · tactile: **75 × 86 × 11 mm** |
 | **Koneksi** | USB-C (kabel data) |
+
+### Papan yang didukung
+
+| Board | Chip | CircuitPython (board id) | I2C | BLE | Catatan |
+|---|---|---|---|---|---|
+| **ESP32-S2 Mini** | ESP32-S2FN4R2 | `lolin_s2_mini` | SDA `IO33`, SCL `IO35` | ✗ | default, paling matang |
+| **LOLIN S3 Mini** | ESP32-S3FH4R2 | `lolin_s3_mini` | SDA `IO35`, SCL `IO36` | ✓ | 27 IO, ukuran sama dengan S2 Mini |
+| **ESP32-S3 Super Mini** | ESP32-S3FH4R2 | `generic_esp32s3_supermini` | SDA `IO33`, SCL `IO34` | ✓ | 23,5 × 18 mm, 35 GPIO |
+
+Cara memilih board (di `firmware/kb.py`):
+
+```python
+BOARD = "s2"            # "s2" | "s3_mini" | "s3_supermini"
+```
+
+Atau tanpa mengedit file — buat `settings.toml` di `CIRCUITPY`:
+
+```toml
+MACROPAD_BOARD = "s3_mini"
+```
+
+> **Catatan S3:** kedua board S3 punya **Bluetooth LE**, jadi sebenarnya bisa dibuat
+> nirkabel. Itu butuh library `adafruit_ble` (bundle Adafruit) dan `HIDModes.BLE` di KMK —
+> belum diaktifkan di repo ini karena menambah dependensi. Versi default tetap USB.
+>
+> **Catatan S3 Super Mini:** CircuitPython untuk board ini baru tersedia di channel
+> **11.0.0-alpha** (belum ada rilis stabil). Kalau butuh yang stabil, pakai S2 atau S3 Mini.
 
 ---
 
@@ -26,14 +54,17 @@ komputer, dan **tanpa library tambahan** di board (cukup CircuitPython + KMK).
 
 | File | Isi |
 |---|---|
-| `firmware/kb.py` | peta pin → tombol dan pin I2C OLED. **Ubah di sini kalau kabelmu beda** |
+| `firmware/kb.py` | pilih board + peta pin → tombol dan pin I2C OLED |
+| `firmware/profiles.py` | tabel pin ketiga board (dipakai juga oleh generator gambar) |
 | `firmware/code.py` | keymap, layer, label layar, inisialisasi OLED |
 | `firmware/ui.py` | isi layar: header, wajah companion, peta tombol, log |
 | `firmware/ssd1306.py` | driver OLED (I2C, framebuffer, teks) — tanpa library luar |
 | `firmware/font5x7.py` | font bitmap 5×7 (dibuat oleh `tools/gen_font.py`) |
 | `firmware/bringup.py` | tes hardware: tombol, I2C, OLED, dan tes ketik |
-| `hardware/wiring.png` | peta kabel |
-| `hardware/wiring.md` | tabel pin + catatan OLED |
+| `hardware/wiring_s2.png` | peta kabel ESP32-S2 Mini |
+| `hardware/wiring_s3_mini.png` | peta kabel LOLIN S3 Mini |
+| `hardware/wiring_s3_supermini.png` | peta kabel ESP32-S3 Super Mini |
+| `hardware/wiring.md` | tabel pin ketiga board + catatan OLED |
 | `hardware/oled_states.png` | tampilan layar di 4 kondisi |
 | `hardware/layout.png` | gambar tampak atas |
 | `hardware/plate_mx_1to1.pdf` | template plate skala **1:1** versi MX |
@@ -50,14 +81,13 @@ komputer, dan **tanpa library tambahan** di board (cukup CircuitPython + KMK).
 
 ## Baca dulu: 5 batasan penting
 
-1. **ESP32-S2 tidak punya Bluetooth.** Board ini hanya WiFi. Untuk macropad nirkabel,
-   pakai ESP32-S3 atau ESP32 biasa (harus ganti board, bukan ganti firmware).
+1. **Bluetooth hanya di versi S3.** ESP32-S2 Mini cuma WiFi; LOLIN S3 Mini dan S3 Super Mini
+   punya BLE 5.0 (belum diaktifkan di firmware ini — lihat catatan di atas).
 2. **Satu port USB-C untuk semuanya**: flashing, console/REPL, dan HID. Itu justru enak —
    satu kabel, dan tidak ada driver CH340 yang perlu diinstal.
-3. **Pin yang jangan disentuh:** `IO0` (tombol BOOT), `IO15` (LED biru bawaan),
-   `IO19`/`IO20` (USB), `IO26`–`IO32` (flash/PSRAM internal).
-   Sisa pin (`IO1`–`IO14`, `IO16`–`IO18`, `IO21`, `IO33`–`IO40`) bebas dipakai.
-   `IO33` dan `IO35` dipakai OLED.
+3. **Pin yang jangan disentuh** (berlaku umum): `IO0` (tombol BOOT), `IO19`/`IO20` (USB),
+   `IO26`–`IO32` (flash/PSRAM internal). Di S2 Mini tambahan: `IO15` (LED biru).
+   Tabel pin lengkap per board ada di [`hardware/wiring.md`](hardware/wiring.md).
 4. **Tombol kecerahan (`BRI+` / `BRI-`) hanya jalan di macOS.** Di Windows umumnya
    tidak berefek — ganti dengan hotkey lain (lihat bagian *Kustomisasi*).
 5. **OLED itu opsional.** Kalau belum punya layarnya, set `USE_OLED = False` di `kb.py` —
@@ -65,7 +95,7 @@ komputer, dan **tanpa library tambahan** di board (cukup CircuitPython + KMK).
 
 > **Board lama:** pada S2 Mini v1.0.0 produksi sebelum akhir 2021, label `IO12` dan `IO13`
 > di silkscreen **tertukar**. Gejalanya cuma satu: tombol K12 (kanan bawah) tidak terbaca.
-> Perbaikannya satu baris di `firmware/kb.py` (lihat *Troubleshooting*).
+> Perbaikannya satu baris di `firmware/profiles.py` (lihat *Troubleshooting*).
 
 ---
 
@@ -75,7 +105,10 @@ Tabel lengkap ada di [`hardware/bom.csv`](hardware/bom.csv). Ringkasnya:
 
 | Komponen | Jumlah | Perkiraan harga |
 |---|---|---|
-| ESP32-S2 Mini | 1 | Rp 50.000 – 75.000 |
+| **Board — pilih salah satu** | 1 | |
+| ↳ ESP32-S2 Mini | | Rp 50.000 – 75.000 |
+| ↳ LOLIN S3 Mini | | Rp 90.000 – 130.000 |
+| ↳ ESP32-S3 Super Mini | | Rp 60.000 – 90.000 |
 | OLED 0.96" SSD1306 I2C | 1 | Rp 25.000 – 40.000 |
 | **Switch — pilih salah satu** | | |
 | ↳ MX (red/brown/blue) | 12 | Rp 70.000 – 120.000 |
@@ -142,9 +175,11 @@ keycap. Ini juga pilihan terbaik untuk percobaan pertama.
 
 Board dari pabrik biasanya berisi MicroPython. Kita ganti ke CircuitPython.
 
-1. Unduh firmware untuk board ini: **<https://circuitpython.org/board/lolin_s2_mini/>**
-   ambil tombol *DOWNLOAD .UF2 NOW*.
-2. Masuk mode bootloader: tekan **RESET** sekali, tunggu sampai LED biru menyala, lalu
+1. Unduh firmware sesuai board-mu, ambil tombol *DOWNLOAD .UF2 NOW*:
+   - ESP32-S2 Mini → <https://circuitpython.org/board/lolin_s2_mini/>
+   - LOLIN S3 Mini → <https://circuitpython.org/board/lolin_s3_mini/>
+   - S3 Super Mini → <https://circuitpython.org/board/generic_esp32s3_supermini/>
+2. Masuk mode bootloader: tekan **RESET** sekali, tunggu sampai LED menyala, lalu
    **tahan BOOT**. (Jangan menahan BOOT saat RESET ditekan — urutannya RESET dulu, BOOT
    belakangan.) Muncul drive baru bernama `BOOT` (atau `FTHRS2BOOT`).
 3. Copy file `.uf2` ke drive itu. Board restart sendiri, muncul drive **`CIRCUITPY`**.
@@ -152,12 +187,12 @@ Board dari pabrik biasanya berisi MicroPython. Kita ganti ke CircuitPython.
    versi TinyUF2.
 
 > **Kalau setelah copy UF2 tidak muncul `CIRCUITPY`:** TinyUF2 di board terlalu tua untuk
-> CircuitPython 10 (butuh ≥ 0.33.0). Dua pilihan: (a) pasang
-> [TinyUF2 0.35.0 untuk lolin_s2_mini](https://adafruit-circuit-python.s3.amazonaws.com/bootloaders/esp32/lolin_s2_mini/tinyuf2-lolin_s2_mini-0.35.0-combined.bin)
-> lewat ROM bootloader, atau (b) pakai CircuitPython 9.x dari halaman *Previous Versions*.
+> CircuitPython 10 (butuh ≥ 0.33.0). Dua pilihan: (a) pasang TinyUF2 0.35.0 untuk board-mu
+> (link "DOWNLOAD BOOTLOADER" ada di halaman CircuitPython board tersebut) lewat ROM
+> bootloader, atau (b) pakai CircuitPython 9.x dari halaman *Previous Versions*.
 > Cara (b) lebih cepat kalau kamu tidak mau menyentuh bootloader.
 
-> **LED biru menyala terus / tidak ada drive sama sekali?** Coba kabel USB lain —
+> **LED menyala terus / tidak ada drive sama sekali?** Coba kabel USB lain —
 > banyak kabel murah hanya untuk daya. Board ini butuh kabel data.
 
 ---
@@ -175,8 +210,12 @@ powershell -ExecutionPolicy Bypass -File tools\deploy.ps1
 ```
 
 Script akan mencari drive `CIRCUITPY`, mengunduh KMK kalau belum ada, lalu menyalin
-**semua** file di `firmware/` (`code.py`, `kb.py`, `ui.py`, `ssd1306.py`, `font5x7.py`).
-Untuk mode tes hardware: tambahkan `-Bringup`.
+**semua** file di `firmware/` (`code.py`, `kb.py`, `profiles.py`, `ui.py`, `ssd1306.py`,
+`font5x7.py`). Untuk mode tes hardware: tambahkan `-Bringup`.
+
+> **Pilih board dulu** sebelum menyalin: `BOARD = "s2"` / `"s3_mini"` / `"s3_supermini"`
+> di `firmware/kb.py` (atau lewat `settings.toml`). Kalau salah, tombol tidak akan terbaca
+> karena pin-nya berbeda.
 
 ### Cara manual
 
@@ -191,6 +230,7 @@ Struktur akhir drive:
 CIRCUITPY/
 ├─ code.py
 ├─ kb.py
+├─ profiles.py
 ├─ ui.py
 ├─ ssd1306.py
 ├─ font5x7.py
@@ -246,13 +286,17 @@ powershell -ExecutionPolicy Bypass -File tools\deploy.ps1
 
 ## Langkah 4 — Wiring
 
-![Peta kabel](hardware/wiring.png)
+![Peta kabel S2](hardware/wiring_s2.png)
+
+Gambar di atas versi **ESP32-S2 Mini**. Untuk S3 Mini dan Super Mini lihat
+[`hardware/wiring.md`](hardware/wiring.md) — pin-nya berbeda, terutama I2C.
 
 Detail pin ada di [`hardware/wiring.md`](hardware/wiring.md). Intinya:
 
 - Setiap tombol: **satu kaki → pin GPIO**, **kaki lain → GND**. Tidak ada resistor,
   tidak ada dioda, tidak ada 3V3.
-- OLED: `VCC → 3V3`, `GND → GND`, `SDA → IO33`, `SCL → IO35`.
+- OLED: `VCC → 3V3`, `GND → GND`, `SDA`/`SCL` sesuai board (S2: `IO33`/`IO35`,
+  S3 Mini: `IO35`/`IO36`, Super Mini: `IO33`/`IO34`).
   **Ikuti label di PCB modul** — urutan pin antar modul bisa berbeda, dan jangan beri 5V.
 - **Cek modul OLED dulu** (tanpa tombol) dengan `-Bringup`: kalau `I2C scan` kosong,
   jangan lanjut solder 12 tombol.
@@ -397,9 +441,11 @@ KC.LCTRL(KC.LSFT(KC.T))
 | Tidak ada drive `CIRCUITPY` | Kabel *charge-only*, atau TinyUF2 terlalu tua → lihat Langkah 1 |
 | Board restart terus, REPL menampilkan error | Ada typo di `code.py`; baca pesan error di REPL |
 | Semua tombol mati | `kmk` tidak ada di root `CIRCUITPY`, atau `code.py` tidak ter-copy |
+| Semua tombol mati **setelah ganti board** | `BOARD` di `kb.py` masih `"s2"` padahal boardnya S3 (atau sebaliknya). REPL akan bilang pin tidak ada |
 | Satu tombol tidak terbaca | Kabel putus / salah pin. Cek dengan `bringup.py` |
-| Tombol terbaca tapi nama tertukar | Tukar urutan di `KEY_PINS` (`firmware/kb.py`) |
-| K12 mati, sisanya normal | Silkscreen lama: ganti `board.IO12` → `board.IO13` di `KEY_PINS` |
+| Tombol terbaca tapi nama tertukar | Tukar urutan di `keys` pada `firmware/profiles.py` |
+| K12 mati, sisanya normal (S2 Mini) | Silkscreen lama: ganti `'IO12'` → `'IO13'` di `profiles.py` (board `s2`) |
+| Layar gelap di S3 Mini | I2C S3 Mini di `IO35`/`IO36`, bukan `IO33`/`IO35` seperti S2 |
 | Semua tombol terbalik (selalu "ditekan") | Kaki switch tersambung ke 3V3, bukan GND. Pindahkan ke GND |
 | **Layar gelap, tombol tetap jalan** | `code.py` mencetak `OLED tidak terdeteksi` → cek SDA/SCL tertukar, VCC belum dapat 3V3, atau alamat bukan 0x3C |
 | Layar menyala tapi isinya terbalik/geser | Modul memakai driver SH1106 (1.3"), bukan SSD1306. Ganti modul atau sesuaikan driver |
@@ -423,10 +469,14 @@ KC.LCTRL(KC.LSFT(KC.T))
 
 ## Referensi
 
-- CircuitPython untuk board ini: <https://circuitpython.org/board/lolin_s2_mini/>
+- CircuitPython:
+  [S2 Mini](https://circuitpython.org/board/lolin_s2_mini/) ·
+  [LOLIN S3 Mini](https://circuitpython.org/board/lolin_s3_mini/) ·
+  [S3 Super Mini](https://circuitpython.org/board/generic_esp32s3_supermini/)
 - KMK firmware: <https://github.com/KMKfw/kmk_firmware> · dokumentasi:
   <https://github.com/KMKfw/kmk_firmware/tree/main/docs/en>
 - Pinout & skema S2 Mini: <https://www.wemos.cc/en/latest/s2/s2_mini.html>
+- Pinout S3 Super Mini (35 GPIO): <https://www.espboards.dev/esp32/esp32-s3-super-mini/>
 - Datasheet SSD1306: <https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf>
 - Editor + REPL berbasis browser: <https://code.circuitpython.org>
 

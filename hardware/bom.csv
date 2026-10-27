@@ -1,5 +1,7 @@
 Komponen,Spesifikasi,Qty,Perkiraan Harga (IDR),Catatan
-ESP32-S2 Mini,LOLIN/WEMOS ESP32-S2FN4R2 4MB flash 2MB PSRAM,1,50000-75000,Board utama. Clone murah juga jalan asal pin sama
+ESP32-S2 Mini (opsi board),LOLIN/WEMOS ESP32-S2FN4R2 4MB flash 2MB PSRAM,1,50000-75000,PILIH SALAH SATU board. WiFi saja (tanpa BLE)
+LOLIN S3 Mini (opsi board),ESP32-S3FH4R2 4MB flash 2MB PSRAM + BLE 5,1,90000-130000,I2C di IO35/IO36 - beda dari S2
+ESP32-S3 Super Mini (opsi board),ESP32-S3FH4R2 23.5x18mm 35 GPIO + BLE 5,1,60000-90000,CircuitPython masih alpha; hindari IO0/IO43/IO44/IO48
 OLED 0.96 inci,SSD1306 128x64 I2C 4 pin (VCC GND SDA SCL),1,25000-40000,Cek urutan pin di PCB modul - bisa GND-VCC-SCL-SDA atau VCC-GND
 Switch MX (versi MX),MX Red/Brown/Blue 3-pin atau 5-pin,12,70000-120000,"PILIH SALAH SATU jenis switch: MX atau tactile"
 Switch tactile (versi tactile),6x6x9.5 mm 4 kaki (actuator panjang),12,15000-25000,"Jangan solder 2 kaki yang sepasang (sisi sama) - short permanen"

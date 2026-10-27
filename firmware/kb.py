@@ -1,13 +1,34 @@
 # =============================================================================
-#  kb.py - PETA PERANGKAT KERAS (hardware) macropad ESP32-S2 Mini
+#  kb.py - PETA PERANGKAT KERAS (hardware) macropad
+#
+#  Mendukung 3 board:
+#     "s2"            ESP32-S2 Mini      (default)
+#     "s3_mini"       LOLIN S3 Mini
+#     "s3_supermini"  ESP32-S3 Super Mini
+#
+#  Cara memilih board: ubah BOARD di bawah ini. Kalau tidak mau mengedit file,
+#  bisa juga lewat settings.toml di CIRCUITPY:
+#     MACROPAD_BOARD = "s3_mini"
 #
 #  File ini HANYA mengurus "pin mana untuk apa".
 #  Isi keymap (tombol jadi apa) ada di code.py.
-#
-#  Kalau kabelmu tidak sama dengan contoh, cukup ubah tuple di bawah ini.
 # =============================================================================
 
+import os
+
 import board
+
+from profiles import BOARDS, DEFAULT_BOARD
+
+BOARD = (os.getenv('MACROPAD_BOARD') or DEFAULT_BOARD).strip().lower()
+
+if BOARD not in BOARDS:
+    raise ValueError(
+        'MACROPAD_BOARD "%s" tidak dikenal. Pilih: %s'
+        % (BOARD, ', '.join(BOARDS))
+    )
+
+PROFILE = BOARDS[BOARD]
 
 # -----------------------------------------------------------------------------
 # 12 tombol, satu kabel per tombol (tidak pakai dioda / matrix).
@@ -18,24 +39,19 @@ import board
 #   K5  K6  K7  K8      baris tengah
 #   K9  K10 K11 K12     baris bawah
 #
-# Catatan board: IO15 = LED biru bawaan, IO0 = tombol BOOT, IO19/IO20 = USB.
-# Jangan dipakai untuk tombol.
+# Nama pin per board ada di profiles.py - satu tempat yang juga dipakai oleh
+# tools/make_diagrams.py, supaya gambar wiring tidak pernah beda dari firmware.
 # -----------------------------------------------------------------------------
-KEY_PINS = (
-    board.IO1,  board.IO2,  board.IO3,  board.IO4,    # baris atas   -> K1..K4
-    board.IO5,  board.IO6,  board.IO7,  board.IO8,    # baris tengah -> K5..K8
-    board.IO9,  board.IO10, board.IO11, board.IO12,   # baris bawah  -> K9..K12
-)
+KEY_PINS = tuple(getattr(board, name) for name in PROFILE['keys'])
 
 # -----------------------------------------------------------------------------
-# OLED 0.96" SSD1306 (128x64) di bus I2C bawaan board.
-# S2 Mini: SCL = IO35, SDA = IO33. Tidak butuh pin tambahan selain 2 ini.
+# OLED 0.96" SSD1306 (128x64) di I2C.
 #
 # Tidak punya OLED? Set USE_OLED = False - sisa firmware tetap jalan normal.
 # -----------------------------------------------------------------------------
 USE_OLED = True
-OLED_SCL = board.SCL          # IO35
-OLED_SDA = board.SDA          # IO33
+OLED_SDA = getattr(board, PROFILE['sda'])
+OLED_SCL = getattr(board, PROFILE['scl'])
 OLED_ADDR = 0x3C              # 0x3D kalau modulmu memakai jumper lain
 OLED_FREQ = 400000
 
@@ -48,7 +64,7 @@ def make_scanner():
 
     value_when_pressed=False  -> tombol disambung ke GND, jadi saat ditekan
                                  pin membaca False.
-    pull=True                 -> pakai pull-up internal ESP32-S2 (tidak perlu
+    pull=True                 -> pakai pull-up internal ESP32 (tidak perlu
                                  resistor tambahan).
     """
     from kmk.scanners.keypad import KeysScanner

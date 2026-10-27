@@ -23,6 +23,7 @@ HW = os.path.join(ROOT, "hardware")
 
 sys.path.insert(0, os.path.join(ROOT, "firmware"))
 import font5x7  # noqa: E402  (font yang sama dengan yang dipakai board)
+from profiles import BOARDS  # noqa: E402  (peta pin yang sama dengan firmware)
 
 # ---------------------------------------------------------------- mekanik
 PITCH = 19.05
@@ -82,13 +83,6 @@ KEYS = [
     ("K1", "MUTE"), ("K2", "VOL-"), ("K3", "VOL+"), ("K4", "PLAY"),
     ("K5", "PREV"), ("K6", "NEXT"), ("K7", "BRI-"), ("K8", "BRI+"),
     ("K9", "COPY"), ("K10", "PASTE"), ("K11", "UNDO"), ("K12", "NAV"),
-]
-
-OLED_ROWS = [
-    ("3V3", "VCC", "3.3 V", PWR),
-    ("GND", "GND", "0 V", GND),
-    ("IO33", "SDA", "data", OLED_LINE),
-    ("IO35", "SCL", "clock", OLED_LINE),
 ]
 
 
@@ -221,27 +215,32 @@ def oled_states():
 
 
 # ================================================================ WIRING MAP
-def wiring_svg_like():
+def wiring_map(board_key):
+    prof = BOARDS[board_key]
+    keys = [(f'K{i + 1}', fn, prof['keys'][i]) for i, (_, fn) in enumerate(KEYS)]
+    oled_rows = [
+        ('3V3', 'VCC', '3.3 V', PWR),
+        ('GND', 'GND', '0 V', GND),
+        (prof['sda'], 'SDA', 'data', OLED_LINE),
+        (prof['scl'], 'SCL', 'clock', OLED_LINE),
+    ]
+
     W, H = 1700, 1450
     img = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(img)
 
-    d.text((90, 52), "WIRING MAP  —  Macropad ESP32-S2 Mini", font=bold(42), fill=INK)
+    d.text((90, 52), "WIRING MAP  —  Macropad " + prof['label'], font=bold(42), fill=INK)
     d.text(
         (90, 112),
         "12 tombol, 1 pin per tombol (tanpa dioda) + OLED 0.96\" di I2C",
         font=regular(22), fill=MUTED,
     )
-    d.text(
-        (90, 148),
-        "Posisi pin di gambar ini diurutkan agar mudah dibaca, bukan tata letak fisik board — di board asli ikuti label di silkscreen.",
-        font=regular(17), fill="#94a3b8",
-    )
+    d.text((90, 148), prof['note'], font=regular(17), fill="#94a3b8")
 
     bx0, by0, bx1, by1 = 90, 195, 470, 1235
     d.rounded_rectangle([bx0, by0, bx1, by1], radius=18, fill=BOARD_FILL,
                         outline=BOARD_LINE, width=3)
-    d.text((280, 232), "ESP32-S2 Mini", font=bold(26), fill=INK, anchor="mm")
+    d.text((280, 232), prof['label'], font=bold(25), fill=INK, anchor="mm")
     d.text((280, 268), "USB-C  ->  PC", font=regular(17), fill=MUTED, anchor="mm")
 
     pad_x0, pad_x1 = 470, 548
@@ -256,8 +255,8 @@ def wiring_svg_like():
 
     # ---- 12 baris tombol
     key_y = [300 + i * 50 for i in range(12)]
-    for (name, fn), y in zip(KEYS, key_y):
-        pad(y, "IO" + name[1:])
+    for (name, fn, pin), y in zip(keys, key_y):
+        pad(y, pin)
         d.line([pad_x1, y, wire_x1, y], fill=KEY_WIRE, width=3)
         d.line([wire_x1, y - 17, wire_x1, y + 17], fill=SWITCH_INK, width=4)
         d.line([sw_right, y - 17, sw_right, y + 17], fill=SWITCH_INK, width=4)
@@ -282,7 +281,7 @@ def wiring_svg_like():
            anchor="ms")
 
     oled_y = [950 + i * 50 for i in range(4)]
-    for (pin, pname, note, colour), y in zip(OLED_ROWS, oled_y):
+    for (pin, pname, note, colour), y in zip(oled_rows, oled_y):
         pad(y, pin)
         d.line([pad_x1, y, ex0, y], fill=colour, width=3)
         d.ellipse([ex0 - 5, y - 5, ex0 + 5, y + 5], fill=colour)
@@ -495,8 +494,11 @@ def plate_template(kind: str):
 def main():
     os.makedirs(HW, exist_ok=True)
 
-    wiring = wiring_svg_like()
-    wiring.save(os.path.join(HW, "wiring.png"), optimize=True)
+    for board_key in BOARDS:
+        wiring = wiring_map(board_key)
+        name = f"wiring_{board_key}"
+        wiring.save(os.path.join(HW, name + ".png"), optimize=True)
+        print(f"{name}.png    ", wiring.size)
 
     layout = layout_view()
     layout.save(os.path.join(HW, "layout.png"), optimize=True)
@@ -504,7 +506,6 @@ def main():
     states = oled_states()
     states.save(os.path.join(HW, "oled_states.png"), optimize=True)
 
-    print("wiring.png         ", wiring.size)
     print("layout.png         ", layout.size)
     print("oled_states.png    ", states.size)
 
