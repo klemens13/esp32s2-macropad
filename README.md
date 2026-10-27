@@ -421,28 +421,6 @@ KC.LCTRL(KC.LSFT(KC.T))
 
 ---
 
-## Publikasi ke GitHub
-
-Repo ini sudah siap di-push (ada `.gitignore`, semua teks ASCII/UTF-8 bersih). Ada dua cara:
-
-**Cara 1 — sekali perintah** (butuh Git + GitHub CLI):
-
-```powershell
-winget install --id Git.Git -e
-winget install --id GitHub.cli -e
-gh auth login                                   # sekali saja, lewat browser
-
-powershell -ExecutionPolicy Bypass -File tools\push_to_github.ps1
-# atau: -Repo macropad-s2 -Private
-```
-
-Script akan `git init`, commit, membuat repo di akunmu, dan push. URL repo dicetak di akhir.
-
-**Cara 2 — tanpa Git**: buat repo kosong di <https://github.com/new>, lalu drag-and-drop
-isi folder ini ke halaman upload. Jangan lupa folder `firmware/`, `hardware/`, `tools/`.
-
----
-
 ## Referensi
 
 - CircuitPython untuk board ini: <https://circuitpython.org/board/lolin_s2_mini/>
