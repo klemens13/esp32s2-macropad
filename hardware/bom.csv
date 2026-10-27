@@ -1,0 +1,17 @@
+Komponen,Spesifikasi,Qty,Perkiraan Harga (IDR),Catatan
+ESP32-S2 Mini,LOLIN/WEMOS ESP32-S2FN4R2 4MB flash 2MB PSRAM,1,50000-75000,Board utama. Clone murah juga jalan asal pin sama
+OLED 0.96 inci,SSD1306 128x64 I2C 4 pin (VCC GND SDA SCL),1,25000-40000,Cek urutan pin di PCB modul - bisa GND-VCC-SCL-SDA atau VCC-GND
+Switch MX (versi MX),MX Red/Brown/Blue 3-pin atau 5-pin,12,70000-120000,"PILIH SALAH SATU jenis switch: MX atau tactile"
+Switch tactile (versi tactile),6x6x9.5 mm 4 kaki (actuator panjang),12,15000-25000,"Jangan solder 2 kaki yang sepasang (sisi sama) - short permanen"
+Keycap 1u (versi MX),Profil apa saja (OEM/Cherry/XDA),12,40000-100000,Bisa dibongkar dari keyboard bekas
+Tutup bulat 6-7 mm (versi tactile),Opsional,12,12000-24000,Atau pakai actuator polos
+PCB bolong / pelat lubang,5x7 cm double side,1,5000-10000,Tempat menempel switch dan board
+Kawat,Silicone wire 26-28 AWG atau kabel pita,1 set,10000-20000,Satu warna untuk GND memudahkan debugging
+Header female,1x15 pin 2.54mm,2,3000-6000,Opsional; versi tactile sebaiknya tanpa header
+Timah solder,0.6-0.8mm lead-free atau 63/37,1,15000-30000,-
+Flux / pasta solder,-,1,10000-20000,-
+Heat shrink,1.5-3mm,1 set,5000-10000,Untuk melindungi sambungan
+Kabel USB-C,USB 2.0 data (bukan charge-only),1,15000-30000,Wajib data
+Double tape busa,1-2mm,1,5000-10000,Menempel board dan modul OLED ke plate
+Filamen 3D print (versi MX),PLA/PETG 1.75mm,~50 g,15000-25000,Case 91 x 98 x 19 mm
+Filamen 3D print (versi tactile),PLA/PETG 1.75mm,~35 g,12000-18000,Case 75 x 86 x 11 mm

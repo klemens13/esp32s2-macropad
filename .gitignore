@@ -1,0 +1,21 @@
+# Python / CircuitPython
+__pycache__/
+*.py[cod]
+*.mpy
+.venv/
+venv/
+
+# hasil generate — bisa dibuat ulang dari sumber
+*.stl
+*.3mf
+*.gcode
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# editor
+.vscode/
+.idea/
