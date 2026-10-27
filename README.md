@@ -186,14 +186,7 @@ lalu `tools/render_case.py` merendernya (z-buffer numpy, tanpa OpenGL).
 
 ![Render case tactile](hardware/render_tactile.png)
 
-Render ulang setelah mengubah parameter SCAD:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\render_case.ps1
-# butuh OpenSCAD + Python (Pillow, numpy); pakai -OpenScad <path> kalau tidak di PATH
-```
-
----
 
 ## Langkah 1 — Pasang CircuitPython
 
