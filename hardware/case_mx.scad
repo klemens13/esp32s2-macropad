@@ -47,11 +47,11 @@ $fn = 60;
 
 // ---------------------------------------------------------------- turunan
 plate_w = margin * 2 + cols * pitch;                 // 86.2
-plate_d = margin * 2 + screen_band + rows * pitch;   // 93.15
+plate_d = margin * 2 + SCREEN_BAND + rows * pitch;   // 93.15
 
-grid_y0 = margin + screen_band;                      // awal baris tombol
+grid_y0 = margin + SCREEN_BAND;                      // awal baris tombol
 win_cx  = plate_w / 2;
-win_cy  = margin + screen_band / 2;                  // tengah area layar
+win_cy  = margin + SCREEN_BAND / 2;                  // tengah area layar
 
 int_w = plate_w + slack;
 int_d = plate_d + slack;

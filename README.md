@@ -71,10 +71,14 @@ MACROPAD_BOARD = "s3_mini"
 | `hardware/plate_tactile_1to1.pdf` | template plate skala **1:1** versi tactile |
 | `hardware/case_mx.scad` | case 3D versi MX (lubang 14 mm, tinggi 19 mm) |
 | `hardware/case_tactile.scad` | case 3D versi tactile (lubang 7 mm, tinggi 11 mm) |
+| `hardware/render_mx.png` | render 3D case MX |
+| `hardware/render_tactile.png` | render 3D case tactile |
 | `hardware/bom.csv` | daftar belanja |
 | `tools/deploy.ps1` | copy firmware + KMK ke board, sekali perintah |
 | `tools/push_to_github.ps1` | buat repo GitHub + push, sekali perintah |
 | `tools/make_diagrams.py` | generator ulang semua gambar |
+| `tools/render_case.ps1` | ekspor STL (OpenSCAD) + render case ke PNG |
+| `tools/render_case.py` | renderer z-buffer (tanpa OpenGL) |
 | `tools/gen_font.py` | generator font bitmap OLED |
 
 ---
@@ -168,6 +172,26 @@ keycap. Ini juga pilihan terbaik untuk percobaan pertama.
 
 > Kedua case sama-sama **belum diuji cetak**. Cetak plate dulu, coba pasang 1 switch,
 > baru cetak tray-nya.
+
+### Hasil jadi (render 3D)
+
+Di-render langsung dari `case_mx.scad` / `case_tactile.scad` — OpenSCAD mengekspor STL,
+lalu `tools/render_case.py` merendernya (z-buffer numpy, tanpa OpenGL).
+
+**MX** — case 91 × 98 × 19 mm, plate lubang 14 mm, keycap 1u:
+
+![Render case MX](hardware/render_mx.png)
+
+**Tactile** — case 75 × 86 × 11 mm, lubang 7 mm, tombol 6×6:
+
+![Render case tactile](hardware/render_tactile.png)
+
+Render ulang setelah mengubah parameter SCAD:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\render_case.ps1
+# butuh OpenSCAD + Python (Pillow, numpy); pakai -OpenScad <path> kalau tidak di PATH
+```
 
 ---
 
